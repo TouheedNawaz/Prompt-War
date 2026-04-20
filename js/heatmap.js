@@ -300,7 +300,7 @@ const VenueHeatmap = (() => {
   // ── Update field label on phase change ────────────────────────
   function _updateFieldLabel(event) {
     const el = document.getElementById('field-phase');
-    if (el) el.textContent = (event.phase || '').replace('-', ' ').toUpperCase();
+    if (el) el.textContent = (event.phase || '').replaceAll('-', ' ').toUpperCase();
     const nameEl = document.getElementById('field-event-name');
     if (nameEl) nameEl.textContent = event.name || '';
   }

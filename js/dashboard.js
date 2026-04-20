@@ -196,7 +196,16 @@ const VenueDashboard = (() => {
 
   function _updateHeaderBadge(event) {
     const badge = document.getElementById('event-phase-badge');
-    if (badge) badge.childNodes[badge.childNodes.length - 1].textContent = ' ' + (event.phase || '').replace('-', ' ');
+    if (badge) {
+      // Use a dedicated span so we don't rely on fragile childNode indexing
+      let textSpan = badge.querySelector('.phase-text');
+      if (!textSpan) {
+        textSpan = document.createElement('span');
+        textSpan.className = 'phase-text';
+        badge.appendChild(textSpan);
+      }
+      textSpan.textContent = (event.phase || '').replaceAll('-', ' ');
+    }
     const nameEl = document.getElementById('event-name-header');
     if (nameEl) nameEl.textContent = event.name || '';
   }
