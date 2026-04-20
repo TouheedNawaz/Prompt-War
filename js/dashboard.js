@@ -181,10 +181,10 @@ const VenueDashboard = (() => {
 
   function _buildPhaseCards(currentPhase) {
     const phases = [
-      { key: 'pre-match',    label: 'Pre-Match',    icon: '🌅' },
-      { key: 'first-half',   label: 'First Half',   icon: '⚽' },
-      { key: 'halftime',     label: 'Half Time',    icon: '☕' },
-      { key: 'second-half',  label: 'Second Half',  icon: '🏆' },
+      { key: 'pre-match',      label: 'Pre-Match',    icon: '🌅' },
+      { key: 'first-innings',  label: '1st Innings',  icon: '🏏' },
+      { key: 'drinks-break',   label: 'Drinks Break', icon: '💧' },
+      { key: 'second-innings', label: '2nd Innings',  icon: '⚡' },
     ];
 
     return phases.map(p => `

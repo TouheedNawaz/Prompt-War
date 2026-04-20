@@ -1,49 +1,47 @@
 /* ================================================================
-   VenueIQ — Demo Data Simulator
-   Generates realistic crowd fluctuations for the demo.
-   Dispatches the same custom events as firebase.js so all
-   UI modules work identically regardless of data source.
+   VenueIQ — Demo Data Simulator (IPL 2026 Edition)
+   Simulates realistic crowd flow across 5 cricket match phases.
    ================================================================ */
 
 const VenueSimulator = (() => {
-  // Internal state
   let state = {};
   let intervalId = null;
   let tickCount = 0;
-  let currentPhase = 'pre-match'; // pre-match | first-half | halftime | second-half | post-match
+  let currentPhase = 'pre-match'; // pre-match | first-innings | drinks-break | second-innings | post-match
 
   // ── Initial Data ─────────────────────────────────────────────
   const INITIAL_STATE = {
     event: {
-      name: 'Championship Finals 2026',
-      venue: 'National Sports Arena',
-      kickoff: '18:00',
-      sport: 'Football',
+      name: 'IPL 2026 — MI vs CSK',
+      venue: 'Wankhede Stadium',
+      kickoff: '19:30 IST',
+      sport: 'Cricket',
+      teams: 'Mumbai Indians vs Chennai Super Kings',
       phase: 'pre-match',
     },
 
     'crowd-zones': {
-      'north-stand':    { name: 'North Stand',    density: 0.55, capacity: 5000, current: 2750, trend: 'increasing' },
-      'south-stand':    { name: 'South Stand',    density: 0.60, capacity: 5000, current: 3000, trend: 'increasing' },
-      'east-concourse': { name: 'East Concourse', density: 0.45, capacity: 2000, current: 900,  trend: 'stable' },
-      'west-concourse': { name: 'West Concourse', density: 0.30, capacity: 2000, current: 600,  trend: 'stable' },
-      'main-gate':      { name: 'Main Gate',      density: 0.72, capacity: 1000, current: 720,  trend: 'increasing' },
-      'food-court':     { name: 'Food Court',     density: 0.50, capacity: 1500, current: 750,  trend: 'stable' },
-      'parking':        { name: 'Parking Area',   density: 0.65, capacity: 3000, current: 1950, trend: 'increasing' },
+      'north-stand':    { name: 'Garware Pavilion (N)',   density: 0.55, capacity: 8000, current: 4400,  trend: 'increasing' },
+      'south-stand':    { name: 'S. Tendulkar Stand (S)', density: 0.60, capacity: 8000, current: 4800,  trend: 'increasing' },
+      'east-concourse': { name: 'S. Gavaskar Stand (E)',  density: 0.45, capacity: 5000, current: 2250,  trend: 'stable' },
+      'west-concourse': { name: 'V. Merchant Stand (W)',  density: 0.30, capacity: 5000, current: 1500,  trend: 'stable' },
+      'main-gate':      { name: 'Gate 1 (North)',          density: 0.72, capacity: 2000, current: 1440,  trend: 'increasing' },
+      'food-court':     { name: 'Food Court',              density: 0.50, capacity: 2500, current: 1250,  trend: 'stable' },
+      'parking':        { name: 'Parking Area',            density: 0.65, capacity: 5000, current: 3250,  trend: 'increasing' },
     },
 
     'wait-times': {
-      'main-gate':       { name: 'Main Gate (A)',    icon: '🚪', minutes: 6,  trend: 'increasing' },
-      'food-court':      { name: 'Food Court',       icon: '🍕', minutes: 5,  trend: 'stable' },
-      'north-restrooms': { name: 'N. Restrooms',     icon: '🚻', minutes: 2,  trend: 'stable' },
-      'merchandise':     { name: 'Merchandise',      icon: '🎽', minutes: 8,  trend: 'stable' },
-      'parking-exit':    { name: 'Parking Exit',     icon: '🅿️', minutes: 4,  trend: 'stable' },
+      'main-gate':       { name: 'Gate 1 Entry',       icon: '🚪', minutes: 6,  trend: 'increasing' },
+      'food-court':      { name: 'Food Court',         icon: '🍛', minutes: 5,  trend: 'stable' },
+      'north-restrooms': { name: 'N. Restrooms',       icon: '🚻', minutes: 2,  trend: 'stable' },
+      'merchandise':     { name: 'MI/CSK Merchandise', icon: '🏏', minutes: 10, trend: 'stable' },
+      'parking-exit':    { name: 'Parking Exit',       icon: '🅿️', minutes: 4,  trend: 'stable' },
     },
 
     'alerts': [
       {
         id: 'alert-001',
-        message: 'Gate B is temporarily closed. Please use Gate A, C, or D.',
+        message: 'Gate 3 (South) is temporarily closed. Please use Gate 1, 2, or 4.',
         priority: 'warning',
         timestamp: Date.now(),
         active: true,
@@ -51,80 +49,70 @@ const VenueSimulator = (() => {
     ],
   };
 
-  // ── Phase Profiles ────────────────────────────────────────────
-  // Each phase defines target densities for each zone
+  // ── Phase Profiles — target crowd densities per phase ─────────
   const PHASE_PROFILES = {
     'pre-match': {
       'north-stand': 0.55, 'south-stand': 0.60, 'east-concourse': 0.45,
-      'west-concourse': 0.30, 'main-gate': 0.72, 'food-court': 0.50, 'parking': 0.65,
+      'west-concourse': 0.30, 'main-gate': 0.72, 'food-court': 0.55, 'parking': 0.65,
       waitMultiplier: 1.0,
     },
-    'first-half': {
-      'north-stand': 0.92, 'south-stand': 0.95, 'east-concourse': 0.25,
-      'west-concourse': 0.20, 'main-gate': 0.20, 'food-court': 0.30, 'parking': 0.85,
-      waitMultiplier: 0.4,
+    'first-innings': {
+      'north-stand': 0.94, 'south-stand': 0.96, 'east-concourse': 0.22,
+      'west-concourse': 0.18, 'main-gate': 0.15, 'food-court': 0.28, 'parking': 0.88,
+      waitMultiplier: 0.35,
     },
-    'halftime': {
-      'north-stand': 0.50, 'south-stand': 0.55, 'east-concourse': 0.88,
-      'west-concourse': 0.70, 'main-gate': 0.30, 'food-court': 0.95, 'parking': 0.80,
-      waitMultiplier: 2.5,
+    'drinks-break': {
+      'north-stand': 0.45, 'south-stand': 0.50, 'east-concourse': 0.85,
+      'west-concourse': 0.72, 'main-gate': 0.25, 'food-court': 0.97, 'parking': 0.82,
+      waitMultiplier: 2.8,
     },
-    'second-half': {
-      'north-stand': 0.94, 'south-stand': 0.96, 'east-concourse': 0.20,
-      'west-concourse': 0.18, 'main-gate': 0.15, 'food-court': 0.25, 'parking': 0.82,
-      waitMultiplier: 0.3,
+    'second-innings': {
+      'north-stand': 0.95, 'south-stand': 0.97, 'east-concourse': 0.18,
+      'west-concourse': 0.15, 'main-gate': 0.12, 'food-court': 0.22, 'parking': 0.85,
+      waitMultiplier: 0.28,
     },
     'post-match': {
-      'north-stand': 0.10, 'south-stand': 0.10, 'east-concourse': 0.75,
-      'west-concourse': 0.68, 'main-gate': 0.85, 'food-court': 0.40, 'parking': 0.92,
-      waitMultiplier: 3.5,
+      'north-stand': 0.08, 'south-stand': 0.08, 'east-concourse': 0.78,
+      'west-concourse': 0.72, 'main-gate': 0.88, 'food-court': 0.38, 'parking': 0.95,
+      waitMultiplier: 3.8,
     },
   };
 
-  // Base wait times (per-item, in minutes)
   const BASE_WAIT_TIMES = {
     'main-gate': 6, 'food-court': 5,
-    'north-restrooms': 2, 'merchandise': 8, 'parking-exit': 4,
+    'north-restrooms': 2, 'merchandise': 10, 'parking-exit': 4,
   };
 
   // ── Init ─────────────────────────────────────────────────────
   function init(useFirebase = false) {
-    state = JSON.parse(JSON.stringify(INITIAL_STATE)); // deep clone
+    state = JSON.parse(JSON.stringify(INITIAL_STATE));
     currentPhase = 'pre-match';
 
-    // If Firebase is connected, seed it
     if (useFirebase && typeof VenueFirebase !== 'undefined' && VenueFirebase.isConnected()) {
       VenueFirebase.seedInitialData(state);
     }
 
-    // Immediately dispatch initial data
     _dispatchAll();
-
-    // Start simulation tick every 8 seconds
     intervalId = setInterval(_tick, 8000);
-
-    // Auto-advance phases for a realistic demo (every ~45 ticks = ~6 min)
     _schedulePhaseAdvance();
-
-    console.info('[VenueSimulator] Started in', useFirebase ? 'Firebase' : 'local', 'mode');
+    console.info('[VenueSimulator] IPL 2026 — MI vs CSK | Mode:', useFirebase ? 'Firebase' : 'local demo');
   }
 
-  // ── Tick — update values with random walk ─────────────────────
+  // ── Tick ─────────────────────────────────────────────────────
   function _tick() {
     tickCount++;
-    const profile = PHASE_PROFILES[currentPhase];
+    const profile    = PHASE_PROFILES[currentPhase];
     const crowdZones = state['crowd-zones'];
     const waitTimes  = state['wait-times'];
 
-    // Update crowd zones: drift toward profile target + jitter
     Object.keys(crowdZones).forEach(key => {
-      const target  = profile[key] ?? 0.5;
-      const current = crowdZones[key].density;
-      const jitter  = (Math.random() - 0.5) * 0.06;
-      const drift   = (target - current) * 0.25;
-      let newDensity = Math.max(0.05, Math.min(0.98, current + drift + jitter));
-
+      const target     = profile[key] ?? 0.5;
+      const current    = crowdZones[key].density;
+      const jitter     = (Math.random() - 0.5) * 0.06;
+      const drift      = (target - current) * 0.25;
+      const newDensity = Math.max(0.05, Math.min(0.98, current + drift + jitter));
       const prevDensity = crowdZones[key].density;
+
       crowdZones[key].density = parseFloat(newDensity.toFixed(3));
       crowdZones[key].current = Math.round(newDensity * crowdZones[key].capacity);
       crowdZones[key].trend   = newDensity > prevDensity + 0.01 ? 'increasing'
@@ -132,7 +120,6 @@ const VenueSimulator = (() => {
                               : 'stable';
     });
 
-    // Update wait times
     Object.keys(waitTimes).forEach(key => {
       const base    = BASE_WAIT_TIMES[key] ?? 5;
       const mult    = profile.waitMultiplier;
@@ -147,18 +134,16 @@ const VenueSimulator = (() => {
 
     _dispatchAll();
 
-    // Optionally write to Firebase
     if (typeof VenueFirebase !== 'undefined' && VenueFirebase.isConnected()) {
       VenueFirebase.writeCrowdData(crowdZones, waitTimes);
     }
   }
 
   // ── Phase advance ─────────────────────────────────────────────
-  const PHASE_ORDER = ['pre-match','first-half','halftime','second-half','post-match'];
+  const PHASE_ORDER = ['pre-match', 'first-innings', 'drinks-break', 'second-innings', 'post-match'];
   let phaseIndex = 0;
 
   function _schedulePhaseAdvance() {
-    // Advance phase every 90 seconds for demo realism
     setTimeout(() => _nextPhase(), 90000);
   }
 
@@ -167,11 +152,20 @@ const VenueSimulator = (() => {
     currentPhase = PHASE_ORDER[phaseIndex];
     state.event.phase = currentPhase;
 
-    // Announce halftime surge
-    if (currentPhase === 'halftime') {
+    if (currentPhase === 'drinks-break') {
       _dispatchAlert({
-        id: 'alert-halftime',
-        message: 'Halftime! Food Court and Concourses are filling up fast. Plan your break now.',
+        id: 'alert-drinks',
+        message: '🏏 Drinks Break! Food Court & concourses are surging — go now or expect 12+ min queues.',
+        priority: 'info',
+        timestamp: Date.now(),
+        active: true,
+      });
+    }
+
+    if (currentPhase === 'second-innings') {
+      _dispatchAlert({
+        id: 'alert-innings2',
+        message: '⚡ 2nd Innings starting! CSK chasing. All stands filling up — return to seats now.',
         priority: 'info',
         timestamp: Date.now(),
         active: true,
@@ -181,7 +175,7 @@ const VenueSimulator = (() => {
     if (currentPhase === 'post-match') {
       _dispatchAlert({
         id: 'alert-post',
-        message: 'Match ended! West Concourse exit recommended — expected 8 min parking wait.',
+        message: '🏆 Match over! Gate 4 (West) exit is fastest. Parking P1–P4 at 95% — allow 20 min.',
         priority: 'warning',
         timestamp: Date.now(),
         active: true,
@@ -196,16 +190,14 @@ const VenueSimulator = (() => {
     }
   }
 
-  // ── Manual phase control (for UI buttons) ────────────────────
   function setPhase(phase) {
     if (!PHASE_PROFILES[phase]) return;
     currentPhase = phase;
     state.event.phase = phase;
     _dispatch('venueiq:event-update', state.event);
-    _tick(); // immediate update
+    _tick();
   }
 
-  // ── Dispatch helpers ─────────────────────────────────────────
   function _dispatchAll() {
     _dispatch('venueiq:crowd-update',     state['crowd-zones']);
     _dispatch('venueiq:waittimes-update', state['wait-times']);
@@ -223,7 +215,6 @@ const VenueSimulator = (() => {
     document.dispatchEvent(new CustomEvent(eventName, { detail }));
   }
 
-  // ── Public API ───────────────────────────────────────────────
   function getCurrentData() { return state; }
 
   function stop() {

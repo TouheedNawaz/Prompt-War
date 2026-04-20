@@ -38,28 +38,28 @@ const VenueHeatmap = (() => {
 
       <div class="stadium-canvas-wrapper">
         <div class="stadium-canvas">
-          <p class="stadium-label">🏟️ NATIONAL SPORTS ARENA — LIVE CROWD VIEW</p>
+          <p class="stadium-label">🏟️ WANKHEDE STADIUM, MUMBAI — IPL 2026 LIVE VIEW</p>
 
           <!-- North (top) -->
           <div class="stadium-north">
             <div class="ns-wrapper">
-              <div class="zone-card" id="zc-north-stand" data-zone="north-stand" tabindex="0" role="button" aria-label="North Stand zone">
-                <div class="zone-name">North Stand</div>
+              <div class="zone-card" id="zc-north-stand" data-zone="north-stand" tabindex="0" role="button" aria-label="Garware Pavilion zone">
+                <div class="zone-name">Garware Pavilion</div>
                 <div class="zone-density-pct" id="zp-north-stand">—%</div>
                 <div class="zone-meta">
                   <span id="zm-north-stand">— / —</span>
                   <span class="zone-trend" id="zt-north-stand">—</span>
                 </div>
               </div>
-              <div class="gate-label" title="Main Gate — currently open">🚪 Gate A</div>
+              <div class="gate-label" title="Gate 1 — Main entrance, currently open">🚪 Gate 1</div>
             </div>
           </div>
 
           <!-- Middle row -->
           <div class="stadium-grid" id="stadium-mid-grid">
-            <!-- West Concourse -->
-            <div class="zone-card" id="zc-west-concourse" data-zone="west-concourse" tabindex="0" role="button" aria-label="West Concourse zone">
-              <div class="zone-name">West Concourse</div>
+            <!-- West / Vijay Merchant Stand -->
+            <div class="zone-card" id="zc-west-concourse" data-zone="west-concourse" tabindex="0" role="button" aria-label="Vijay Merchant Stand zone">
+              <div class="zone-name">V. Merchant Stand</div>
               <div class="zone-density-pct" id="zp-west-concourse">—%</div>
               <div class="zone-meta">
                 <span id="zm-west-concourse">— / —</span>
@@ -67,16 +67,16 @@ const VenueHeatmap = (() => {
               </div>
             </div>
 
-            <!-- Center Field -->
+            <!-- Center Pitch -->
             <div class="stadium-field">
-              <div class="field-label">⚽ FIELD</div>
-              <div class="field-event-name" id="field-event-name">Championship Finals 2026</div>
+              <div class="field-label">🏏 PITCH</div>
+              <div class="field-event-name" id="field-event-name">IPL 2026 — MI vs CSK</div>
               <div class="field-phase-badge" id="field-phase">PRE-MATCH</div>
             </div>
 
-            <!-- East Concourse -->
-            <div class="zone-card" id="zc-east-concourse" data-zone="east-concourse" tabindex="0" role="button" aria-label="East Concourse zone">
-              <div class="zone-name">East Concourse</div>
+            <!-- East / Sunil Gavaskar Stand -->
+            <div class="zone-card" id="zc-east-concourse" data-zone="east-concourse" tabindex="0" role="button" aria-label="Sunil Gavaskar Stand zone">
+              <div class="zone-name">S. Gavaskar Stand</div>
               <div class="zone-density-pct" id="zp-east-concourse">—%</div>
               <div class="zone-meta">
                 <span id="zm-east-concourse">— / —</span>
@@ -88,22 +88,22 @@ const VenueHeatmap = (() => {
           <!-- South (bottom) -->
           <div class="stadium-south" style="margin-top:var(--s3)">
             <div class="ns-wrapper">
-              <div class="zone-card" id="zc-south-stand" data-zone="south-stand" tabindex="0" role="button" aria-label="South Stand zone">
-                <div class="zone-name">South Stand</div>
+              <div class="zone-card" id="zc-south-stand" data-zone="south-stand" tabindex="0" role="button" aria-label="Sachin Tendulkar Stand zone">
+                <div class="zone-name">S. Tendulkar Stand</div>
                 <div class="zone-density-pct" id="zp-south-stand">—%</div>
                 <div class="zone-meta">
                   <span id="zm-south-stand">— / —</span>
                   <span class="zone-trend" id="zt-south-stand">—</span>
                 </div>
               </div>
-              <div class="gate-label closed" title="Gate B — CLOSED today">⛔ Gate B</div>
+              <div class="gate-label closed" title="Gate 3 — CLOSED for maintenance">⛔ Gate 3</div>
             </div>
           </div>
 
           <!-- Utility zones row -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);margin-top:var(--s3)">
             <div class="zone-card" id="zc-food-court" data-zone="food-court" tabindex="0" role="button" aria-label="Food Court zone">
-              <div class="zone-name">🍕 Food Court</div>
+              <div class="zone-name">🍛 Food Court</div>
               <div class="zone-density-pct" id="zp-food-court">—%</div>
               <div class="zone-meta">
                 <span id="zm-food-court">— / —</span>
@@ -122,8 +122,8 @@ const VenueHeatmap = (() => {
 
           <!-- Main Gate below -->
           <div style="margin-top:var(--s3)">
-            <div class="zone-card" id="zc-main-gate" data-zone="main-gate" tabindex="0" role="button" aria-label="Main Gate zone" style="max-width:100%">
-              <div class="zone-name">🚪 Main Gate (Gate A)</div>
+            <div class="zone-card" id="zc-main-gate" data-zone="main-gate" tabindex="0" role="button" aria-label="Gate 1 North zone" style="max-width:100%">
+              <div class="zone-name">🚪 Gate 1 (North — Main Entry)</div>
               <div class="zone-density-pct" id="zp-main-gate">—%</div>
               <div class="zone-meta">
                 <span id="zm-main-gate">— / —</span>
@@ -159,10 +159,10 @@ const VenueHeatmap = (() => {
 
       <!-- Google Maps Embed -->
       <div class="venue-location-card">
-        <div class="venue-location-header">
-          <span class="material-symbols-rounded">location_on</span>
-          <h3>Venue Location — Wembley, London</h3>
-        </div>
+          <div class="venue-location-header">
+            <span class="material-symbols-rounded">location_on</span>
+            <h3>Venue Location — Wankhede Stadium, Mumbai</h3>
+          </div>
         <div id="maps-wrapper">
           <div class="maps-placeholder" id="maps-placeholder">
             <span class="material-symbols-rounded">map</span>
@@ -178,7 +178,7 @@ const VenueHeatmap = (() => {
   // ── Inject Maps Embed ─────────────────────────────────────────
   function _injectMapsEmbed() {
     const key     = window.CONFIG?.GOOGLE_MAPS_API_KEY;
-    const address = window.CONFIG?.EVENT?.address || 'Wembley Stadium, London';
+    const address = window.CONFIG?.EVENT?.address || 'Wankhede Stadium, Mumbai, India';
     const wrapper = document.getElementById('maps-wrapper');
     if (!wrapper) return;
 

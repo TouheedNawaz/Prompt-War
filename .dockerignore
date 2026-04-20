@@ -1,0 +1,7 @@
+# Docker build exclusions
+config.js
+.git
+.gitignore
+*.log
+.DS_Store
+Thumbs.db

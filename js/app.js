@@ -15,11 +15,12 @@
     FIREBASE:          {},
     GOOGLE_MAPS_API_KEY: '',
     EVENT: {
-      name:    'Championship Finals 2026',
-      venue:   'National Sports Arena',
-      address: 'Wembley Stadium, London',
-      kickoff: '18:00',
-      sport:   'Football',
+      name:    'IPL 2026 — MI vs CSK',
+      venue:   'Wankhede Stadium',
+      address: 'Wankhede Stadium, Mumbai, Maharashtra, India',
+      kickoff: '19:30 IST',
+      sport:   'Cricket',
+      teams:   'Mumbai Indians vs Chennai Super Kings',
     },
   };
 
