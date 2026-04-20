@@ -1,14 +1,10 @@
-/* ================================================================
-   VenueIQ — App Coordinator
-   Orchestrates initialization, tab routing, and chat UI.
-   ================================================================ */
+/* VenueIQ — App Coordinator
+   Orchestrates initialization, tab routing, and chat UI. */
 
 (function () {
   'use strict';
 
-  // ═══════════════════════════════════════════════════════════════
-  // 1. CONFIGURATION DEFAULTS (if config.js is missing)
-  // ═══════════════════════════════════════════════════════════════
+  // Default config (used when config.js is missing — demo mode)
   window.CONFIG = window.CONFIG || {
     GEMINI_API_KEY:    '',
     DEMO_MODE:         true,
@@ -24,20 +20,16 @@
     },
   };
 
-  // ═══════════════════════════════════════════════════════════════
-  // 2. TAB ROUTING
-  // ═══════════════════════════════════════════════════════════════
+  // ── Tab Routing ───────────────────────────────────────────────
   let activeTab = 'assistant';
 
   function switchTab(tabName) {
-    // Deactivate all
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.classList.remove('active');
       btn.setAttribute('aria-selected', 'false');
     });
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
 
-    // Activate selected
     const btn   = document.getElementById(`tab-${tabName}`);
     const panel = document.getElementById(`panel-${tabName}`);
     if (btn)   { btn.classList.add('active'); btn.setAttribute('aria-selected', 'true'); }
@@ -50,15 +42,11 @@
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
 
-  // ═══════════════════════════════════════════════════════════════
-  // 3. HEADER — inject event info
-  // ═══════════════════════════════════════════════════════════════
+  // Inject event name into header on load
   const eventNameEl = document.getElementById('event-name-header');
   if (eventNameEl) eventNameEl.textContent = CONFIG.EVENT.name;
 
-  // ═══════════════════════════════════════════════════════════════
-  // 4. CHAT UI
-  // ═══════════════════════════════════════════════════════════════
+  // ── Chat UI ───────────────────────────────────────────────────
   const chatMessages = document.getElementById('chat-messages');
   const chatInput    = document.getElementById('chat-input');
   const sendBtn      = document.getElementById('send-btn');
@@ -66,13 +54,10 @@
   let isAITyping = false;
   let conversationStarted = false;
 
-  // Handle quick prompt chips
+  // Quick prompt chip clicks
   document.addEventListener('click', e => {
     const chip = e.target.closest('.quick-prompt-btn');
-    if (chip) {
-      const prompt = chip.dataset.prompt;
-      if (prompt) sendUserMessage(prompt);
-    }
+    if (chip?.dataset.prompt) sendUserMessage(chip.dataset.prompt);
   });
 
   // Send on button click
@@ -81,7 +66,7 @@
     if (text && !isAITyping) sendUserMessage(text);
   });
 
-  // Send on Enter (but Shift+Enter = newline)
+  // Send on Enter (Shift+Enter = newline)
   chatInput?.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -90,64 +75,52 @@
     }
   });
 
-  // Disable send while typing
   function setTypingState(typing) {
     isAITyping = typing;
-    if (sendBtn) sendBtn.disabled = typing;
-    if (chatInput) chatInput.disabled = typing;
+    if (sendBtn)    sendBtn.disabled    = typing;
+    if (chatInput)  chatInput.disabled  = typing;
   }
 
-  // ── Send a message ────────────────────────────────────────────
   async function sendUserMessage(text) {
     if (!text || isAITyping) return;
 
     // Hide welcome screen on first message
     if (!conversationStarted) {
-      const welcome = chatMessages.querySelector('.chat-welcome');
-      if (welcome) welcome.remove();
+      chatMessages.querySelector('.chat-welcome')?.remove();
       conversationStarted = true;
     }
 
     chatInput.value = '';
     setTypingState(true);
 
-    // Check API key
     const hasKey = window.CONFIG?.GEMINI_API_KEY &&
                    !window.CONFIG.GEMINI_API_KEY.includes('YOUR_');
 
-    // Render user bubble
     appendMessage('user', text);
 
     if (!hasKey) {
-      // Show API key missing message
       appendMessage('ai',
-        '⚠️ **Gemini API key not configured.** To enable the AI assistant, please copy `config.example.js` to `config.js` and add your free API key from [Google AI Studio](https://aistudio.google.com/apikey).\n\n' +
-        'The rest of the app (crowd map, dashboard, live data) works without a key!',
+        '⚠️ **Gemini API key not configured.** Copy `config.example.js` to `config.js` and add your free key from ' +
+        '[Google AI Studio](https://aistudio.google.com/apikey). The crowd map and dashboard still work without it!',
         true
       );
       setTypingState(false);
       return;
     }
 
-    // Show typing indicator
-    const typingId = showTypingIndicator();
-
-    // Call Gemini
-    const messageEl = createAIBubble();
-    let finalText = '';
+    const typingId  = showTypingIndicator();
+    const bubbleEl  = createAIBubble();
+    let   finalText = '';
 
     const result = await VenueGemini.sendMessage(text, (partial, isDone) => {
       finalText = partial;
-      // Remove typing indicator on first chunk
       removeTypingIndicator(typingId);
-      // Update bubble in-place with streamed text
-      updateAIBubble(messageEl, partial);
+      updateAIBubble(bubbleEl, partial);
       if (!isDone) scrollToBottom();
     });
 
     if (!result.ok) {
       removeTypingIndicator(typingId);
-      // If streaming started, the bubble already exists
       if (!finalText) {
         appendMessage('ai', `❌ **Error:** ${result.error || 'Unknown error. Please try again.'}`, false);
       }
@@ -163,9 +136,8 @@
     scrollToBottom();
   }
 
-  // ── Append a completed message ────────────────────────────────
   function appendMessage(role, text, addContext = false) {
-    const el = document.createElement('div');
+    const el   = document.createElement('div');
     el.className = `message ${role}`;
     const avatar = role === 'ai' ? '🤖' : '👤';
     const time   = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -182,9 +154,8 @@
     scrollToBottom();
   }
 
-  // ── Create an AI bubble that will be updated via streaming ────
   function createAIBubble() {
-    const el = document.createElement('div');
+    const el   = document.createElement('div');
     el.className = 'message ai';
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -206,7 +177,6 @@
     if (bubbleEl) bubbleEl.innerHTML = _formatText(text);
   }
 
-  // ── Typing indicator ──────────────────────────────────────────
   function showTypingIndicator() {
     const id = 'typing-' + Date.now();
     const el = document.createElement('div');
@@ -215,9 +185,7 @@
     el.innerHTML = `
       <div class="message-avatar" aria-hidden="true">🤖</div>
       <div class="typing-indicator" role="status" aria-label="AI is typing">
-        <div class="typing-dots">
-          <span></span><span></span><span></span>
-        </div>
+        <div class="typing-dots"><span></span><span></span><span></span></div>
         <span class="typing-label">VenueIQ is thinking...</span>
       </div>`;
     chatMessages.appendChild(el);
@@ -229,38 +197,29 @@
     document.getElementById(id)?.remove();
   }
 
-  // ── External: route a prompt from map tab ────────────────────
+  // Called from the Crowd Map "Ask AI" button
   function askAIAboutZone(prompt) {
     switchTab('assistant');
     setTimeout(() => sendUserMessage(prompt), 150);
   }
 
-  // ── Format text: markdown-lite ────────────────────────────────
+  // Markdown-lite formatter for AI responses
   function _formatText(text) {
     return text
-      // Bold
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      // Italic
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      // Links
       .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-      // Bullet points
       .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
       .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-      // Line breaks
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br>');
   }
 
   function scrollToBottom() {
-    if (chatMessages) {
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+    if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // 5. LIVE STATUS INDICATOR
-  // ═══════════════════════════════════════════════════════════════
+  // ── Live Status Indicator ─────────────────────────────────────
   function setLiveStatus(connected) {
     const el = document.getElementById('live-status');
     if (!el) return;
@@ -268,54 +227,26 @@
     el.innerHTML = `<span class="live-dot ${connected ? '' : 'critical'}"></span> ${connected ? 'Live data connected' : 'Demo mode'}`;
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // 6. BOOTSTRAP ALL MODULES
-  // ═══════════════════════════════════════════════════════════════
+  // ── Bootstrap ─────────────────────────────────────────────────
   function boot() {
-    // 1. Init Firebase (optional)
     const firebaseConnected = VenueFirebase.init();
-
-    // 2. Start simulator (always — provides demo data or writes to Firebase)
     VenueSimulator.init(firebaseConnected);
-
-    // 3. Init Gemini (just attaches data listeners)
     VenueGemini.init();
-
-    // 4. Init Heatmap (builds stadium UI, listens for data)
     VenueHeatmap.init(askAIAboutZone);
-
-    // 5. Init Dashboard (builds dashboard UI, listens for data)
     VenueDashboard.init();
+    setLiveStatus(firebaseConnected);
 
-    // 6. Update status
-    setLiveStatus(!firebaseConnected ? false : true);
-
-    // 7. Welcome toast
+    // Welcome toast
     setTimeout(() => {
       VenueDashboard.showToast({
         title: '🏟️ VenueIQ Ready!',
-        message: 'Live crowd data is now streaming. Ask the AI anything!',
+        message: 'IPL 2026 crowd data is live. Ask the AI anything!',
         type: 'success',
         duration: 4000,
       });
     }, 800);
-
-    // 8. Alert toast for demo mode
-    if (CONFIG.DEMO_MODE || !firebaseConnected) {
-      setTimeout(() => {
-        VenueDashboard.showToast({
-          title: 'Demo Mode Active',
-          message: 'Simulated crowd data is running. Configure Firebase for real-time data.',
-          type: 'info',
-          duration: 6000,
-        });
-      }, 2000);
-    }
-
-    console.info('[VenueIQ] 🏟️ App initialized. Firebase:', firebaseConnected ? 'connected' : 'not used');
   }
 
-  // Run on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
   } else {

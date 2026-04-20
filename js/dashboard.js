@@ -253,7 +253,7 @@ const VenueDashboard = (() => {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
-    const icons = { info: 'notifications', warning: '⚠️', critical: '🚨', success: '✅' };
+    const icons = { info: 'ℹ️', warning: '⚠️', critical: '🚨', success: '✅' };
     const id = 'toast-' + Date.now();
 
     const toastEl = document.createElement('div');
@@ -268,10 +268,8 @@ const VenueDashboard = (() => {
       </div>
       <span class="toast-dismiss material-symbols-rounded" aria-label="Dismiss notification">close</span>`;
 
-    // Dismiss on click
     toastEl.querySelector('.toast-dismiss').onclick = () => _removeToast(id);
     toastEl.onclick = () => _removeToast(id);
-
     container.appendChild(toastEl);
 
     if (duration > 0) setTimeout(() => _removeToast(id), duration);
