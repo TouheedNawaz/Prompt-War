@@ -1,10 +1,10 @@
 # 🏟️ VenueIQ — Smart Sporting Venue Assistant
 
 > **Google Prompt War Hackathon Submission**  
-> Powered by **Gemini 2.5 Flash** · **Firebase Realtime Database** · **Google Maps** · **Material Design**
+> Powered by **Gemini 2.5 Pro** · **Firebase Realtime Database** · **Google Maps** · **Material Design**
 
 [![Live Demo](https://img.shields.io/badge/Demo-Live%20App-00d4ff?style=for-the-badge&logo=googlechrome)](https://your-username.github.io/Prompt-War)
-[![Google AI](https://img.shields.io/badge/Powered%20by-Gemini%202.5%20Flash-7c3aed?style=for-the-badge&logo=google)](https://aistudio.google.com)
+[![Google AI](https://img.shields.io/badge/Powered%20by-Gemini%202.5%20Pro-7c3aed?style=for-the-badge&logo=google)](https://aistudio.google.com)
 
 ---
 
@@ -19,7 +19,7 @@ Improving the physical event experience for attendees at large-scale sporting ve
 
 VenueIQ is a single-page web application that functions as an intelligent companion for every attendee. The system combines three powerful layers:
 
-### Layer 1 — AI-Powered Context Injection (Gemini 2.5 Flash)
+### Layer 1 — AI-Powered Context Injection (Gemini 2.5 Pro)
 Before every Gemini API call, the system dynamically injects the latest live venue data (crowd densities, wait times, active alerts) directly into the system prompt. This means the AI always responds with **real-time awareness** rather than generic advice.
 
 ```
@@ -48,7 +48,7 @@ This makes the system data-source-agnostic: swapping from demo mode to Firebase 
 
 | Feature | Description |
 |---|---|
-| 🤖 **AI Chat** | Multi-turn conversation with Gemini 2.5 Flash. Live data injected into every system prompt. |
+| 🤖 **AI Chat** | Multi-turn conversation with Gemini 2.5 Pro. Live data injected into every system prompt. |
 | 🗺️ **Crowd Heatmap** | Interactive stadium map with color-coded zone densities (green → red). Real-time updates with pop animations. |
 | ⏱️ **Wait Time Dashboard** | Live cards for every major point-of-interest with trend indicators and animated progress bars. |
 | 🚨 **Smart Alerts** | Priority alert system (info/warning/critical) with banner, card list, and toast notifications. |
@@ -72,7 +72,7 @@ This makes the system data-source-agnostic: swapping from demo mode to Firebase 
 
 | Service | Integration | Purpose |
 |---|---|---|
-| **Gemini 2.5 Flash API** | REST API (`generativelanguage.googleapis.com`) | AI-powered conversational assistant with live context injection |
+| **Gemini 2.5 Pro API** | REST API (`generativelanguage.googleapis.com`) | AI-powered conversational assistant with live context injection |
 | **Firebase Realtime Database** | Firebase Web SDK v10 (CDN) | Real-time crowd data sync, alerts, wait times |
 | **Google Maps Embed API** | Iframe embed | Venue location and surroundings map |
 | **Google Fonts (Inter)** | CDN | Premium typography across the entire UI |
@@ -150,10 +150,10 @@ Prompt-War/
 ## 📐 Assumptions
 
 1. **Crowd data source**: Real deployment would connect IoT sensors (people-counters, camera-based CV) to Firebase. For this demo, a realistic simulator models event phases.
-2. **Single venue**: The system is demonstrated for one venue (National Sports Arena / Wembley). The architecture supports multi-venue by extending the data schema.
-3. **Client-side API keys**: For a hackathon demo, API keys are stored client-side. Production deployment would use a serverless proxy (Cloud Functions).
+2. **Single venue**: The system is demonstrated for one venue (Wankhede Stadium, Mumbai). The architecture supports multi-venue by extending the data schema.
+3. **Client-side API keys**: For a hackathon demo, API keys are stored client-side securely via environment injection but executed client-side. Production deployment would use a serverless proxy (Cloud Functions).
 4. **Event phases auto-advance**: Every 90 seconds in demo mode to showcase the full event lifecycle.
-5. **Gate B closed**: Used to demonstrate the alert system and AI contextual awareness of venue conditions.
+5. **Gate 3 closed**: Used to demonstrate the alert system and AI contextual awareness of venue conditions.
 
 ---
 
@@ -192,7 +192,7 @@ Prompt-War/
 ## 🏗️ Built With
 
 - **Pure HTML5 + Vanilla CSS + Vanilla JS** — No frameworks, no build step
-- **Gemini 2.5 Flash** — Fast, accurate AI with context injection
+- **Gemini 2.5 Pro** — Fast, highly-capable reasoning AI with context injection
 - **Firebase Realtime Database** — Sub-100ms data synchronization
 - **Google Maps Embed API** — Venue location visualization
 

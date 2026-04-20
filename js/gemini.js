@@ -4,7 +4,7 @@
    ================================================================ */
 
 const VenueGemini = (() => {
-  const MODEL    = 'gemini-2.5-flash';
+  const MODEL    = 'gemini-2.5-pro';
   const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
   const MAX_HISTORY = 10;
 
