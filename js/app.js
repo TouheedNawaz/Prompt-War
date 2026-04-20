@@ -228,8 +228,8 @@
   }
 
   // ── Bootstrap ─────────────────────────────────────────────────
-  function boot() {
-    const firebaseConnected = VenueFirebase.init();
+  async function boot() {
+    const firebaseConnected = await VenueFirebase.init();
     VenueSimulator.init(firebaseConnected);
     VenueGemini.init();
     VenueHeatmap.init(askAIAboutZone);

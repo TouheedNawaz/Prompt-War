@@ -1,98 +1,96 @@
-/* ================================================================
-   VenueIQ — Firebase Integration (Optional)
-   When DEMO_MODE is true, this module is a no-op.
-   When Firebase is configured, it listens to Realtime Database
-   and dispatches the same custom events as the simulator.
-   ================================================================ */
+/* VenueIQ — Firebase Integration (Optional)
+   Skipped entirely when DEMO_MODE is true — no SDK downloaded.
+   When DEMO_MODE is false, dynamically loads Firebase SDK
+   and connects to Realtime Database. */
 
 const VenueFirebase = (() => {
-  let db = null;
+  let db          = null;
   let initialized = false;
 
-  /**
-   * Initialize Firebase from CONFIG object (config.js).
-   * Falls back gracefully if config is missing.
-   */
-  function init() {
-    // If demo mode or no Firebase config → skip
-    if (!window.CONFIG) {
-      console.warn('[VenueIQ Firebase] No config found. Running in demo mode.');
-      return false;
-    }
-    if (window.CONFIG.DEMO_MODE) {
-      console.info('[VenueIQ Firebase] Demo mode active. Firebase not initialized.');
+  // Dynamically inject a <script> tag and wait for it to load
+  function _loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s   = document.createElement('script');
+      s.src     = src;
+      s.onload  = resolve;
+      s.onerror = () => reject(new Error(`Failed to load: ${src}`));
+      document.head.appendChild(s);
+    });
+  }
+
+  // Initialize Firebase — async so SDK can be loaded on demand
+  async function init() {
+    if (!window.CONFIG) return false;
+
+    if (window.CONFIG.DEMO_MODE !== false) {
+      console.info('[VenueFirebase] Demo mode — SDK not loaded');
       return false;
     }
 
     const fbConfig = window.CONFIG.FIREBASE;
-    if (!fbConfig || !fbConfig.databaseURL || fbConfig.databaseURL.includes('YOUR_')) {
-      console.warn('[VenueIQ Firebase] Firebase config missing or placeholder. Falling back to demo mode.');
+    if (!fbConfig?.databaseURL || fbConfig.databaseURL.includes('YOUR_')) {
+      console.warn('[VenueFirebase] Config missing or placeholder — falling back to demo mode');
+      return false;
+    }
+
+    // Only now do we download the Firebase SDK (~100 KB)
+    try {
+      await _loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+      await _loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js');
+    } catch (err) {
+      console.warn('[VenueFirebase] SDK load failed:', err.message);
       return false;
     }
 
     try {
-      firebase.initializeApp(fbConfig);
-      db = firebase.database();
+      if (!firebase.apps.length) firebase.initializeApp(fbConfig);
+      db          = firebase.database();
       initialized = true;
-      console.info('[VenueIQ Firebase] Connected to:', fbConfig.databaseURL);
+      console.info('[VenueFirebase] Connected to:', fbConfig.databaseURL);
       _attachListeners();
       return true;
-    } catch (e) {
-      console.error('[VenueIQ Firebase] Init failed:', e);
+    } catch (err) {
+      console.error('[VenueFirebase] Init failed:', err);
       return false;
     }
   }
 
-  /**
-   * Attach Realtime Database listeners.
-   * Each listener dispatches a custom DOM event that
-   * UI modules (heatmap.js, dashboard.js) react to.
-   */
+  // Attach Realtime Database listeners — each dispatches a custom DOM
+  // event that heatmap.js and dashboard.js already listen to
   function _attachListeners() {
     if (!db) return;
 
-    // Crowd zones
     db.ref('/crowd-zones').on('value', snap => {
       const data = snap.val();
       if (data) _dispatch('venueiq:crowd-update', data);
     });
 
-    // Wait times
     db.ref('/wait-times').on('value', snap => {
       const data = snap.val();
       if (data) _dispatch('venueiq:waittimes-update', data);
     });
 
-    // Alerts
     db.ref('/alerts').on('value', snap => {
       const data = snap.val();
       const alertsArr = data
-        ? Object.entries(data)
-            .map(([id, v]) => ({ id, ...v }))
-            .filter(a => a.active)
+        ? Object.entries(data).map(([id, v]) => ({ id, ...v })).filter(a => a.active)
         : [];
       _dispatch('venueiq:alerts-update', alertsArr);
     });
 
-    // Event meta
     db.ref('/event').on('value', snap => {
       const data = snap.val();
       if (data) _dispatch('venueiq:event-update', data);
     });
   }
 
-  /**
-   * Write initial demo data structure to Firebase.
-   * Called by simulator.js when Firebase is connected.
-   */
+  // Seed the initial data structure into Firebase (called by simulator.js)
   function seedInitialData(data) {
     if (!db || !initialized) return;
     db.ref('/').set(data).catch(console.error);
   }
 
-  /**
-   * Write a crowd-zones update batch (called by simulator in live mode).
-   */
+  // Write crowd+wait data batch (called by simulator on every tick)
   function writeCrowdData(crowdZones, waitTimes) {
     if (!db || !initialized) return;
     db.ref('/crowd-zones').set(crowdZones).catch(console.error);
