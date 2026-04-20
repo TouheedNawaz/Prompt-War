@@ -229,12 +229,39 @@
 
   // ── Bootstrap ─────────────────────────────────────────────────
   async function boot() {
+    // Register PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      try {
+        await navigator.serviceWorker.register('/sw.js');
+        console.log('[VenueIQ] Service Worker registered');
+      } catch (e) {
+        console.error('[VenueIQ] Service Worker failed', e);
+      }
+    }
+
     const firebaseConnected = await VenueFirebase.init();
     VenueSimulator.init(firebaseConnected);
     VenueGemini.init();
     VenueHeatmap.init(askAIAboutZone);
     VenueDashboard.init();
     setLiveStatus(firebaseConnected);
+
+    // Sensory Mode toggle
+    const sensoryBtn = document.getElementById('sensory-toggle');
+    if (sensoryBtn) {
+      let sensoryActive = false;
+      sensoryBtn.addEventListener('click', () => {
+        sensoryActive = !sensoryActive;
+        if (sensoryActive) {
+          sensoryBtn.classList.add('active');
+          document.body.classList.add('sensory-mode-active');
+        } else {
+          sensoryBtn.classList.remove('active');
+          document.body.classList.remove('sensory-mode-active');
+        }
+        document.dispatchEvent(new CustomEvent('venueiq:sensory-mode', { detail: sensoryActive }));
+      });
+    }
 
     // Welcome toast
     setTimeout(() => {

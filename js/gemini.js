@@ -14,6 +14,7 @@ const VenueGemini = (() => {
     crowdZones: {},
     waitTimes:  {},
     alerts:     [],
+    sensoryMode: false
   };
 
   function init() {
@@ -21,6 +22,9 @@ const VenueGemini = (() => {
     document.addEventListener('venueiq:waittimes-update', e => { liveData.waitTimes   = e.detail; });
     document.addEventListener('venueiq:alerts-update',    e => { liveData.alerts      = e.detail; });
     document.addEventListener('venueiq:event-update',     e => { liveData.event       = e.detail; });
+    
+    // Listen for sensory mode toggle
+    document.addEventListener('venueiq:sensory-mode',     e => { liveData.sensoryMode = e.detail; });
   }
 
   // ── System Prompt — IPL / Wankhede Stadium ────────────────────
@@ -135,20 +139,12 @@ TRANSPORT:
 4. Use cricket and IPL terminology naturally (innings, over, boundary, etc.).
 5. Be enthusiastic — you're helping fans enjoy an AMAZING IPL match!
 6. Mention live wait times when giving recommendations.
-7. If something is unknown, say so honestly.`;
+7. If something is unknown, say so honestly.
+8. SENSORY MODE IS ${liveData.sensoryMode ? 'ON. The user prefers low-noise, calm environments. Prioritize suggesting the quietest zones and areas with the lowest crowd drift regardless of distance.' : 'OFF.'}`;
   }
 
   // ── Send Message ─────────────────────────────────────────────
   async function sendMessage(userText, onChunk) {
-    const apiKey = window.CONFIG?.GEMINI_API_KEY;
-
-    if (!apiKey || apiKey.includes('YOUR_')) {
-      return {
-        ok: false, error: 'no_key',
-        text: 'Please add your Gemini API key to config.js to enable the AI assistant.',
-      };
-    }
-
     conversationHistory.push({ role: 'user', parts: [{ text: userText }] });
 
     if (conversationHistory.length > MAX_HISTORY * 2) {
@@ -156,22 +152,12 @@ TRANSPORT:
     }
 
     const requestBody = {
-      system_instruction: { parts: [{ text: _buildSystemPrompt() }] },
-      contents: conversationHistory,
-      generationConfig: {
-        temperature: 0.75, topK: 40, topP: 0.95, maxOutputTokens: 512,
-      },
-      safetySettings: [
-        { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-      ],
+      systemPrompt: _buildSystemPrompt(),
+      history: conversationHistory
     };
 
     try {
-      const url = `${API_BASE}/${MODEL}:generateContent?key=${apiKey}`;
-      const response = await fetch(url, {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
@@ -179,17 +165,11 @@ TRANSPORT:
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        throw new Error(err?.error?.message || `HTTP ${response.status}`);
+        throw new Error(err?.error || `HTTP ${response.status}`);
       }
 
-      const data      = await response.json();
-      const candidate = data?.candidates?.[0];
-
-      if (!candidate || candidate.finishReason === 'SAFETY') {
-        throw new Error('Response filtered by safety settings.');
-      }
-
-      const aiText = candidate.content?.parts?.[0]?.text || 'I couldn\'t generate a response. Please try again.';
+      const data = await response.json();
+      const aiText = data.text || 'I couldn\'t generate a response. Please try again.';
 
       conversationHistory.push({ role: 'model', parts: [{ text: aiText }] });
 

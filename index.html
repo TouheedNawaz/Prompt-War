@@ -13,6 +13,8 @@
   <meta property="og:title" content="VenueIQ — Smart Venue Assistant">
   <meta property="og:description" content="AI-powered crowd navigation and real-time coordination for sporting events.">
   <meta property="og:type" content="website">
+  
+  <link rel="manifest" href="/manifest.json">
 
   <title>VenueIQ — Smart Venue Assistant</title>
 
@@ -62,6 +64,12 @@
         </div>
         <div class="event-name-header" id="event-name-header">IPL 2026 — MI vs CSK</div>
       </div>
+      
+      <!-- Accessibility / Sensory Mode Toggle -->
+      <button class="sensory-toggle" id="sensory-toggle" aria-label="Toggle Sensory Mode (Quiet Routing)" title="Sensory Mode: Prioritize quiet areas">
+        <span class="material-symbols-rounded" aria-hidden="true" style="font-size: 18px;">psychology_alt</span>
+        <span class="sr-only">Toggle Sensory Friendly Mode</span>
+      </button>
 
     </div>
   </header>

@@ -166,6 +166,18 @@ body::after {
   font-size: 11px; color: var(--text-secondary); font-weight: 500;
 }
 
+.sensory-toggle {
+  background: transparent; border: 1px solid var(--border-subtle);
+  border-radius: var(--r-full); color: var(--text-muted);
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  transition: all var(--ease-smooth); margin-left: var(--s2);
+}
+.sensory-toggle:hover { border-color: var(--cyan); color: var(--text-primary); }
+.sensory-toggle.active {
+  background: var(--cyan-dim); border-color: var(--border-accent);
+  color: var(--cyan); box-shadow: var(--shadow-glow-cyan);
+}
+
 /* ── Tab Navigation ─────────────────────────────────────────── */
 .tab-nav {
   position: fixed;

@@ -53,8 +53,9 @@ This makes the system data-source-agnostic: swapping from demo mode to Firebase 
 | ⏱️ **Wait Time Dashboard** | Live cards for every major point-of-interest with trend indicators and animated progress bars. |
 | 🚨 **Smart Alerts** | Priority alert system (info/warning/critical) with banner, card list, and toast notifications. |
 | 📊 **Event Phase Tracker** | Visual stepper showing current event phase (pre-match → post-match). |
+| 🧠 **Sensory Mode** | Accessibility toggle that redirects routing to prioritize quiet, low-density zones for neurodiverse attendees. |
 | 📍 **Venue Map** | Google Maps embed showing the venue location and surrounding area. |
-| 📱 **Mobile-First** | Fully responsive, works as a PWA, add-to-home-screen ready. |
+| 📱 **Progressive Web App** | Fully responsive, installable on mobile, with a Service Worker providing offline caching resilient to stadium network drops. |
 
 ---
 
@@ -150,8 +151,8 @@ Prompt-War/
 ## 📐 Assumptions
 
 1. **Crowd data source**: Real deployment would connect IoT sensors (people-counters, camera-based CV) to Firebase. For this demo, a realistic simulator models event phases.
-2. **Single venue**: The system is demonstrated for one venue (Wankhede Stadium, Mumbai). The architecture supports multi-venue by extending the data schema.
-3. **Client-side API keys**: For a hackathon demo, API keys are stored client-side securely via environment injection but executed client-side. Production deployment would use a serverless proxy (Cloud Functions).
+2. **Node.js Express Backend**: Replaced static Nginx with a secure Node.js backend to completely protect the Gemini API keys from the client-side browser.
+3. **Progressive Web App**: The repository implements a `manifest.json` and `sw.js` for robust, offline-capable event experiences.
 4. **Event phases auto-advance**: Every 90 seconds in demo mode to showcase the full event lifecycle.
 5. **Gate 3 closed**: Used to demonstrate the alert system and AI contextual awareness of venue conditions.
 

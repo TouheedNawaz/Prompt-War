@@ -112,6 +112,10 @@
 .zone-card.density-high   { --zone-color: var(--status-high); }
 .zone-card.density-crit   { --zone-color: var(--status-crit); animation: zone-pulse 1.5s ease-in-out infinite; }
 
+/* Sensory Mode shifts loud reds/oranges to calm blues */
+body.sensory-mode-active .zone-card.density-high { --zone-color: #93c5fd; }
+body.sensory-mode-active .zone-card.density-crit { --zone-color: #60a5fa; animation: none; }
+
 .zone-card::before { background: var(--zone-color, var(--status-low)); }
 .zone-card:hover::before { opacity: 0.28; }
 
